@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 
 const GRID_SIZE = 20;
 const CELL_SIZE = 25;
-const INITIAL_SNAKE = [{ x: 10, y: 10 }];
+const INITIAL_SNAKE = [{ x: 10, y: 10 }, { x: 9, y: 10 }, { x: 8, y: 10 }];
 const INITIAL_DIRECTION = { x: 1, y: 0 };
 const INITIAL_FOOD = { x: 15, y: 15 };
 
@@ -31,7 +31,7 @@ const Index = () => {
     head.y = (head.y + GRID_SIZE) % GRID_SIZE;
 
     // Check for self-collision
-    if (newSnake.some(segment => segment.x === head.x && segment.y === head.y)) {
+    if (newSnake.slice(1).some(segment => segment.x === head.x && segment.y === head.y)) {
       setGameOver(true);
       return;
     }
@@ -95,8 +95,69 @@ const Index = () => {
     setScore(0);
   };
 
+  const renderSnakeSegment = (segment, index) => {
+    const isHead = index === 0;
+    const prevSegment = snake[index - 1] || segment;
+    const nextSegment = snake[index + 1] || segment;
+
+    let rotation = 0;
+    if (prevSegment.x < segment.x || (isHead && direction.x === 1)) rotation = 0;
+    else if (prevSegment.x > segment.x || (isHead && direction.x === -1)) rotation = 180;
+    else if (prevSegment.y < segment.y || (isHead && direction.y === 1)) rotation = 90;
+    else if (prevSegment.y > segment.y || (isHead && direction.y === -1)) rotation = 270;
+
+    const segmentStyle = {
+      position: 'absolute',
+      left: segment.x * CELL_SIZE,
+      top: segment.y * CELL_SIZE,
+      width: CELL_SIZE,
+      height: CELL_SIZE,
+      backgroundColor: '#4CAF50',
+      borderRadius: isHead ? '50% 50% 50% 50%' : '50%',
+      transform: `rotate(${rotation}deg)`,
+      zIndex: snake.length - index,
+    };
+
+    if (isHead) {
+      return (
+        <div key={index} style={segmentStyle}>
+          <div style={{
+            position: 'absolute',
+            top: '20%',
+            left: '20%',
+            width: '20%',
+            height: '20%',
+            backgroundColor: 'white',
+            borderRadius: '50%',
+          }} />
+          <div style={{
+            position: 'absolute',
+            top: '20%',
+            right: '20%',
+            width: '20%',
+            height: '20%',
+            backgroundColor: 'white',
+            borderRadius: '50%',
+          }} />
+          <div style={{
+            position: 'absolute',
+            bottom: '20%',
+            left: '50%',
+            width: '30%',
+            height: '10%',
+            backgroundColor: '#45a049',
+            transform: 'translateX(-50%)',
+            borderRadius: '10px',
+          }} />
+        </div>
+      );
+    }
+
+    return <div key={index} style={segmentStyle} />;
+  };
+
   return (
-    <div className="flex-grow flex flex-col justify-center items-center bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 min-h-screen p-8">
+    <div className="flex-grow flex flex-col justify-center items-center bg-gradient-to-r from-green-400 to-blue-500 min-h-screen p-8">
       <div className="bg-white rounded-lg shadow-2xl p-8">
         <h1 className="text-4xl font-bold mb-4 text-center text-gray-800">Snake Game</h1>
         <div className="flex justify-between mb-4">
@@ -112,22 +173,7 @@ const Index = () => {
             backgroundColor: '#f0f0f0',
           }}
         >
-          {snake.map((segment, index) => (
-            <div
-              key={index}
-              className="rounded-full"
-              style={{
-                position: 'absolute',
-                left: segment.x * CELL_SIZE,
-                top: segment.y * CELL_SIZE,
-                width: CELL_SIZE,
-                height: CELL_SIZE,
-                backgroundColor: index === 0 ? '#4CAF50' : '#8BC34A',
-                border: '1px solid #45a049',
-                zIndex: snake.length - index,
-              }}
-            />
-          ))}
+          {snake.map(renderSnakeSegment)}
           <div
             className="rounded-full"
             style={{
